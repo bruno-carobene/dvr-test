@@ -124,7 +124,7 @@ st.header("🏢 Anagrafica Aziendale")
 
 # Caricamento Logo
 st.subheader("🖼️ Logo Aziendale")
-logo_caricato = st.file_uploader("Carica il logo della tua azienda (sostituirà quello Easywork)", type=["png", "jpg", "jpeg"])
+logo_caricato = st.file_uploader("Se lo desideri, carica il logo della tua azienda", type=["png", "jpg", "jpeg"])
 
 col1, col2 = st.columns(2)
 
@@ -161,15 +161,15 @@ with col4:
 
 # Descrizione attività
 st.subheader("📝 Descrizione Attività")
-attivita_desc = st.text_area("Descrivi brevemente il settore di attività", key="attivita")
+attivita_desc = st.text_area("Descrivi brevemente il settore di attività della tua azienda", key="attivita")
 locali = st.text_area("Struttura dei locali", key="locali")
-terzi = st.text_input("Attività affidate a terzi", key="terzi")
-terzi_svolte = st.text_input("Attività svolte presso terzi", key="terzi_svolte")
+terzi = st.text_input("Specifica se vi sono attività affidate a terzi", key="terzi")
+terzi_svolte = st.text_input("Specifica se vi sono attività svolte presso terzi", key="terzi_svolte")
 
 # === SEZIONE 2: AMBIENTI ===
 st.header("🏭 Ambienti Aziendali")
 
-st.markdown("Seleziona gli ambienti presenti:")
+st.markdown("Seleziona gli ambienti utilizzati per la tua attività:")
 
 col_amb1, col_amb2, col_amb3 = st.columns(3)
 
@@ -516,9 +516,9 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
                 # Istruzioni sommario
                 st.info("""
                 📋 **Il vostro documento:**  
-                Potete ora scaricare il file docx che è stato generato.
-                1. Leggetelo con attenzione
-                2. E' un file editabile e può essere corretto
+                Puoi ora scaricare il file docx che è stato generato.
+                1. Leggilo con attenzione
+                2. E' un file editabile e può essere corretto in ogni sua parte
                 3. Il documento deve essere stampato e firmato dai referenti.
                 """)
                 
@@ -532,6 +532,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
