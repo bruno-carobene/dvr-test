@@ -241,10 +241,6 @@ def aggiungi_sommario_statico(doc):
         ("Programma delle misure ritenute opportune per garantire il miglioramento nel tempo dei livelli di sicurezza e procedura per l'attuazione", 1),
         ("Elenco dei pericoli considerati", 0),
         ("Criteri di quantificazione del rischio", 0),
-        ("Probabilità", 1),
-        ("Danno", 1),
-        ("Rischio", 1),
-        ("Quantificazione dei rischi specifici", 1),
         ("Prescrizioni legali", 0),
         ("Gestione del documento", 0),
         ("", 0),
@@ -256,8 +252,6 @@ def aggiungi_sommario_statico(doc):
         ("Attività affidate a terzi", 2),
         ("Attività svolte presso terzi", 2),
         ("Attrezzature e agenti chimici impiegati", 0),
-        ("Elenco delle attrezzature impiegate", 1),
-        ("Agenti chimici", 1),
         ("", 0),
         ("Allegati", 0),
         ("Ambienti di lavoro", 1),
@@ -419,4 +413,5 @@ def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, t
     buffer.seek(0)
     
     return buffer
+
 
