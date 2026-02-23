@@ -122,6 +122,10 @@ if 'azienda_data' not in st.session_state:
 # === SEZIONE 1: ANAGRAFICA AZIENDA ===
 st.header("🏢 Anagrafica Aziendale")
 
+# Caricamento Logo
+st.subheader("🖼️ Logo Aziendale")
+logo_caricato = st.file_uploader("Carica il logo della tua azienda (sostituirà quello Easywork)", type=["png", "jpg", "jpeg"])
+
 col1, col2 = st.columns(2)
 
 with col1:
@@ -185,6 +189,26 @@ with col_amb3:
     tribuna = st.checkbox("Tribuna")
     locali_caldaia = st.checkbox("Locali caldaia")
     altro_amb = st.text_input("Altro (specificare)")
+
+# === AGGIUNTA DOPO LA SEZIONE 2: AMBIENTI (app.py) ===
+st.header("📸 Foto Ambienti di Lavoro (Opzionale)")
+st.info("Puoi caricare file esistenti, o scattare foto se sei su mobile, per mostrare gli ambienti di lavoro della tua azienda.")
+
+foto_ambienti = []
+file_caricati = st.file_uploader("Carica o scatta foto degli ambienti", 
+                                  type=["png", "jpg", "jpeg"], 
+                                  accept_multiple_files=True)
+
+if file_caricati:
+    for i, file in enumerate(file_caricati):
+        col_img, col_txt = st.columns([1, 2])
+        with col_img:
+            st.image(file, width=150)
+        with col_txt:
+            didascalia = st.text_input(f"Didascalia per la foto {i+1}", 
+                                       placeholder="Es: Uffici Amministrativi", 
+                                       key=f"cap_{i}")
+            foto_ambienti.append({"file": file, "caption": didascalia})
 
 # === SEZIONE 3: ATTREZZATURE ===
 st.header("🔧 Attrezzature Impiegate")
@@ -470,7 +494,9 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
                     attrezzature, 
                     mansioni, 
                     agenti_chimici,
-                    templates_dir
+                    templates_dir,
+                    logo_file=logo_caricato,       # Nuovo
+                    foto_ambienti=foto_ambienti    # Nuovo
                 )
                 
                 # Nome file
@@ -506,6 +532,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
