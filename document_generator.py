@@ -5,6 +5,7 @@ from docx.shared import RGBColor, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import parse_xml
+from docx.shared import Inches 
 import os
 import sys
 
@@ -316,7 +317,7 @@ def inserisci_elenco_puntato(doc, segnaposto, lista_voci):
             
             break
 
-def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, templates_dir):
+def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, templates_dir, logo_file=None, foto_ambienti=None):
     """
     Funzione principale che genera il documento DVR usando docxcompose
     """
@@ -339,8 +340,17 @@ def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, t
     if not os.path.exists(template_path):
         raise FileNotFoundError(f"Template non trovato: {template_path}")
     
-    # 1. Carica template
+    # 0. Carica template
     master_doc = Document(template_path)
+
+    # 1. GESTIONE LOGO (Se caricato, lo inseriamo in cima)
+    if logo_file:
+        # Nota: Inseriamo l'immagine nel primo paragrafo (che dovrebbe essere vuoto o sopra il nome)
+        # Se nel template hai rimosso l'immagine originale, lo mettiamo all'inizio
+        p = master_doc.paragraphs[0]
+        r = p.add_run()
+        r.add_picture(logo_file, width=Inches(2.5)) # Ridimensiona a circa 6.3cm
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     
     # 2. Rimuovi sommario dinamico
     rimuovi_sommario_dinamico(master_doc)
@@ -354,11 +364,25 @@ def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, t
     
     # 5. Inserisci tabella chimica
     inserisci_tabella_chimica(master_doc, "{{TABELLA_CHIMICA}}", agenti_chimici, db_chimico)
+
+    # 6. GESTIONE FOTO AMBIENTI (Nuova pagina prima degli Allegati)
+    if foto_ambienti:
+        master_doc.add_page_break()
+        titolo_foto = master_doc.add_heading("Ambienti di lavoro aziendali", level=1)
+        titolo_foto.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        for foto in foto_ambienti:
+            # Aggiunge l'immagine
+            master_doc.add_picture(foto["file"], width=Inches(5))
+            # Aggiunge la didascalia
+            p_cap = master_doc.add_paragraph(foto["caption"])
+            p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            master_doc.add_paragraph() # Spazio vuoto
     
-    # 6. Aggiungi sommario statico
+    # 7. Aggiungi sommario statico
     aggiungi_sommario_statico(master_doc)
     
-    # 7. Assembla moduli con Composer (SENZA salto pagina extra tra moduli)
+    # 8. Assembla moduli con Composer (SENZA salto pagina extra tra moduli)
     print("Assemblaggio moduli in corso...")
     composer = Composer(master_doc)
     
@@ -395,3 +419,4 @@ def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, t
     buffer.seek(0)
     
     return buffer
+
