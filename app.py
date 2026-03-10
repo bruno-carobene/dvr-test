@@ -4,11 +4,18 @@ from supabase import create_client, Client
 from datetime import datetime
 import os
 
-# === CREDENZIALI SUPABASE ===
-# Trovale in Settings -> API sul sito di Supabase
-URL_SUPABASE = st.secrets["SUPABASE_URL"]
-KEY_SUPABASE = st.secrets["SUPABASE_KEY"]
+# Sostituisci queste righe:
+# URL_SUPABASE = st.secrets["SUPABASE_URL"]
+# KEY_SUPABASE = st.secrets["SUPABASE_KEY"]
 
+# Con queste:
+URL_SUPABASE = os.getenv("SUPABASE_URL")
+KEY_SUPABASE = os.getenv("SUPABASE_KEY")
+
+# Aggiungi questo piccolo controllo per sicurezza
+if not URL_SUPABASE or not KEY_SUPABASE:
+    st.error("Errore: Variabili d'ambiente non trovate su Render!")
+    
 # Incolla qui i tuoi 100 codici. Se il codice è in questa lista, può entrare.
 # === CONFIGURAZIONE CODICI MONOUSO ===
 CODICI_VALIDI = [
@@ -555,6 +562,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
