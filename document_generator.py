@@ -426,3 +426,4 @@ def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, t
 
 
 
+
