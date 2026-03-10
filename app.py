@@ -15,6 +15,9 @@ KEY_SUPABASE = os.getenv("SUPABASE_KEY")
 # Aggiungi questo piccolo controllo per sicurezza
 if not URL_SUPABASE or not KEY_SUPABASE:
     st.error("Errore: Variabili d'ambiente non trovate su Render!")
+else:
+    # QUESTA È LA RIGA MANCANTE:
+    supabase: Client = create_client(URL_SUPABASE, KEY_SUPABASE)
     
 # Incolla qui i tuoi 100 codici. Se il codice è in questa lista, può entrare.
 # === CONFIGURAZIONE CODICI MONOUSO ===
@@ -562,6 +565,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
