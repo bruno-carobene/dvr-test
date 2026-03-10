@@ -7,9 +7,28 @@ import os
 import os
 
 # Incolla qui i tuoi 100 codici. Se il codice è in questa lista, può entrare.
+# === CONFIGURAZIONE CODICI MONOUSO ===
 CODICI_VALIDI = [
-    "DVR-AAA-001", "DVR-BBB-002", "PROMO-2026", "EASY-WORK-77",
-    "XJ9-L42-PP", "M12-K88-ZZ", "easy1", "easy2", "easy3" # ...aggiungi gli altri qui
+    "EW-72A1-9XB", "EW-15K2-4ML", "EW-88P3-7RT", "EW-24V4-1NQ", "EW-63S5-8DP",
+    "EW-41G6-2WY", "EW-90J7-5KH", "EW-37B8-9CV", "EW-52M9-1XZ", "EW-19R0-4BF",
+    "EW-81T1-6NQ", "EW-27H2-8PL", "EW-66D3-3KJ", "EW-45F4-7HG", "EW-93G5-1VX",
+    "EW-32S6-4TR", "EW-74K7-9NM", "EW-11L8-2DB", "EW-58P9-5CX", "EW-22V0-8RQ",
+    "EW-85M1-3YF", "EW-39T2-7KG", "EW-61B3-1PH", "EW-48D4-4SJ", "EW-95H5-9WL",
+    "EW-26G6-2VX", "EW-77J7-5RT", "EW-14K8-8NM", "EW-53S9-1DP", "EW-89P0-4KJ",
+    "EW-31L1-7TR", "EW-64V2-9BQ", "EW-42F3-2HG", "EW-91D4-5SJ", "EW-35M5-8YF",
+    "EW-70T6-1KG", "EW-18B7-4PH", "EW-55H8-7WL", "EW-82G9-9VX", "EW-29K0-2NM",
+    "EW-67S1-5DP", "EW-46P2-8KJ", "EW-94L3-1TR", "EW-33V4-4BQ", "EW-71F5-7HG",
+    "EW-12D6-9SJ", "EW-59M7-2YF", "EW-23T8-5KG", "EW-86B9-8PH", "EW-40H0-1WL",
+    "EW-62G1-4VX", "EW-49K2-7NM", "EW-96S3-9DP", "EW-25P4-2KJ", "EW-78L5-5TR",
+    "EW-13V6-8BQ", "EW-54F7-1HG", "EW-87D8-4SJ", "EW-36M9-7YF", "EW-92T0-9KG",
+    "EW-30B1-2PH", "EW-65H2-5WL", "EW-43G3-8VX", "EW-97K4-1NM", "EW-28S5-4DP",
+    "EW-73P6-7KJ", "EW-16L7-9TR", "EW-51V8-2BQ", "EW-84F9-5HG", "EW-38D0-8SJ",
+    "EW-60M1-1YF", "EW-47T2-4KG", "EW-99B3-7PH", "EW-21H4-9WL", "EW-75G5-2VX",
+    "EW-10K6-5NM", "EW-57S7-8DP", "EW-20P8-1KJ", "EW-83L9-4TR", "EW-44V0-7BQ",
+    "EW-68F1-9HG", "EW-34D2-2SJ", "EW-79M3-5YF", "EW-17T4-8KG", "EW-56B5-1PH",
+    "EW-80H6-4WL", "EW-24G7-7VX", "EW-69K8-9NM", "EW-41S9-2DP", "EW-90P0-5KJ",
+    "EW-37L1-8TR", "EW-72V2-1BQ", "EW-15F3-4HG", "EW-52D4-7SJ", "EW-88M5-9YF",
+    "EW-31T6-2KG", "EW-64B7-5PH", "EW-42H8-8WL", "EW-91G9-1VX", "EW-35K0-4NM"
 ]
 
 FILE_USATI = "codici_usati.txt"
@@ -540,6 +559,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
