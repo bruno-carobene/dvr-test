@@ -332,11 +332,11 @@ def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, t
     #template_path = os.path.join(templates_dir, 'Template_Base.docx')
     template_path = os.path.join('templates', 'Template_Base.docx')
    # Aggiungi questo print subito dopo per "vedere" cosa succede nei log
-if not os.path.exists(template_path):
-    print(f"ERRORE: Non trovo il file in {os.path.abspath(template_path)}")
+    if not os.path.exists(template_path):
+        print(f"ERRORE: Non trovo il file in {os.path.abspath(template_path)}")
     # Questo ti dirà se la cartella templates esiste almeno!
-    if os.path.exists('templates'):
-        print(f"File dentro templates: {os.listdir('templates')}")
+        if os.path.exists('templates'):
+            print(f"File dentro templates: {os.listdir('templates')}")
     else:
         print("La cartella templates non esiste proprio nel container!") 
     #if not os.path.exists(template_path):
@@ -421,6 +421,7 @@ if not os.path.exists(template_path):
     buffer.seek(0)
     
     return buffer
+
 
 
 
