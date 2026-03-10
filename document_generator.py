@@ -330,19 +330,19 @@ def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, t
     azienda_data["LISTA_CHIMICI"] = "\n".join(lista_chimici) if lista_chimici else ""
     
     #template_path = os.path.join(templates_dir, 'Template_Base.docx')
+   # --- Tutto questo blocco deve avere 4 spazi all'inizio di ogni riga ---
     template_path = os.path.join('templates', 'Template_Base.docx')
-   # Aggiungi questo print subito dopo per "vedere" cosa succede nei log
+    
+    # Controllo di debug
     if not os.path.exists(template_path):
         print(f"ERRORE: Non trovo il file in {os.path.abspath(template_path)}")
-    # Questo ti dirà se la cartella templates esiste almeno!
+        # Se la cartella esiste, elenca i file, altrimenti segnala l'assenza della cartella
         if os.path.exists('templates'):
             print(f"File dentro templates: {os.listdir('templates')}")
-    else:
-        print("La cartella templates non esiste proprio nel container!") 
-    #if not os.path.exists(template_path):
-        #raise FileNotFoundError(f"Template non trovato: {template_path}")
+        else:
+            print("La cartella templates non esiste proprio nel container!")
     
-    # 0. Carica template
+    # 0. Carica template (DEVE essere allineato con la 'if' sopra)
     master_doc = Document(template_path)
 
     # 1. GESTIONE LOGO (Se caricato, lo inseriamo in cima)
@@ -421,6 +421,7 @@ def genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, t
     buffer.seek(0)
     
     return buffer
+
 
 
 
