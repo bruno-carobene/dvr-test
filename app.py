@@ -3,50 +3,58 @@ from document_generator import genera_dvr
 from datetime import datetime
 import os
 
-# === CONFIGURAZIONE PASSWORD ===
-PASSWORD_CORRETTA = "easyworkdvr26"  # Cambia con la password che vuoi
+# === CONFIGURAZIONE CODICI MONOUSO ===
+import os
 
-# === FUNZIONE LOGIN ===
+# Incolla qui i tuoi 100 codici. Se il codice è in questa lista, può entrare.
+CODICI_VALIDI = [
+    "DVR-AAA-001", "DVR-BBB-002", "PROMO-2026", "EASY-WORK-77",
+    "XJ9-L42-PP", "M12-K88-ZZ", "easy1", "easy2", "easy3" # ...aggiungi gli altri qui
+]
+
+FILE_USATI = "codici_usati.txt"
+
+def leggi_codici_usati():
+    if not os.path.exists(FILE_USATI):
+        return set()
+    with open(FILE_USATI, "r") as f:
+        return set(line.strip() for line in f)
+
+def salva_codice_usato(codice):
+    with open(FILE_USATI, "a") as f:
+        f.write(f"{codice}\n")
+# CONTROLLO PASSWORD
 def check_password():
-    """Verifica password e gestisce login"""
-    
-    # Inizializza stato sessione
+    """Verifica il codice monouso e gestisce il login"""
     if "password_correct" not in st.session_state:
         st.session_state.password_correct = False
     
-    # Se già loggato, mostra app
     if st.session_state.password_correct:
         return True
     
-    # Mostra schermata login
     col1, col2, col3 = st.columns([1, 2, 1])
-    
     with col2:
-        st.markdown("## 🔐 Accesso Riservato")
-        st.markdown("---")
-        
-        # Logo Easywork
-        st.image("https://raw.githubusercontent.com/bruno-carobene/dvr-generator/main/assets/logo-easywork.png", 
-                 use_column_width=True)
-        
-        st.markdown("---")
+        st.markdown("## 🔐 Accesso Monouso")
+        st.image("https://raw.githubusercontent.com/bruno-carobene/dvr-generator/main/assets/logo-easywork.png", use_column_width=True)
         st.markdown("### Generatore DVR")
-        st.markdown("Inserisci la password per accedere all'applicazione")
+        st.info("Inserisci il tuo codice univoco. Una volta usato, il codice scadrà.")
         
-        password = st.text_input("Password", type="password", key="password_input")
+        codice_inserito = st.text_input("Codice di Accesso", type="default", key="password_input")
         
         if st.button("Accedi", use_container_width=True):
-            if password == PASSWORD_CORRETTA:
+            usati = leggi_codici_usati()
+            
+            if codice_inserito in usati:
+                st.error("❌ Questo codice è già stato utilizzato.")
+            elif codice_inserito in CODICI_VALIDI:
+                salva_codice_usato(codice_inserito)
                 st.session_state.password_correct = True
-                st.success("✅ Accesso consentito!")
+                st.success("✅ Codice valido! Accesso in corso...")
                 st.rerun()
             else:
-                st.error("❌ Password errata. Riprova.")
+                st.error("❌ Codice non valido. Riprova.")
         
-        # Footer login
-        st.markdown("---")
-        st.caption("© Easywork - Tutti i diritti riservati")
-    
+        st.caption("© Easywork - Servizio Generazione DVR")
     return False
 
 # === VERIFICA ACCESSO ===
@@ -532,6 +540,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
