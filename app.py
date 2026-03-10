@@ -1,10 +1,13 @@
 import streamlit as st
 from document_generator import genera_dvr
+from supabase import create_client, Client
 from datetime import datetime
 import os
 
-# === CONFIGURAZIONE CODICI MONOUSO ===
-import os
+# === CREDENZIALI SUPABASE ===
+# Trovale in Settings -> API sul sito di Supabase
+URL_SUPABASE = st.secrets["SUPABASE_URL"]
+KEY_SUPABASE = st.secrets["SUPABASE_KEY"]
 
 # Incolla qui i tuoi 100 codici. Se il codice è in questa lista, può entrare.
 # === CONFIGURAZIONE CODICI MONOUSO ===
@@ -31,49 +34,42 @@ CODICI_VALIDI = [
     "EW-31T6-2KG", "EW-64B7-5PH", "EW-42H8-8WL", "EW-91G9-1VX", "EW-35K0-4NM"
 ]
 
-FILE_USATI = "codici_usati.txt"
 
-def leggi_codici_usati():
-    if not os.path.exists(FILE_USATI):
-        return set()
-    with open(FILE_USATI, "r") as f:
-        return set(line.strip() for line in f)
+def verifica_codice_nel_db(codice):
+    # Controlla se il codice è già presente nella tabella
+    risposta = supabase.table("codici_usati").select("codice").eq("codice", codice).execute()
+    return len(risposta.data) > 0
 
-def salva_codice_usato(codice):
-    with open(FILE_USATI, "a") as f:
-        f.write(f"{codice}\n")
+def registra_codice_usato(codice):
+    # Inserisce il codice per "bruciarlo"
+    supabase.table("codici_usati").insert({"codice": codice}).execute()
+
 # CONTROLLO PASSWORD
 def check_password():
-    """Verifica il codice monouso e gestisce il login"""
     if "password_correct" not in st.session_state:
         st.session_state.password_correct = False
     
     if st.session_state.password_correct:
         return True
     
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown("## 🔐 Accesso Monouso")
-        st.image("https://raw.githubusercontent.com/bruno-carobene/dvr-generator/main/assets/logo-easywork.png", use_column_width=True)
-        st.markdown("### Generatore DVR")
-        st.info("Inserisci il tuo codice univoco. Una volta usato, il codice scadrà.")
-        
-        codice_inserito = st.text_input("Codice di Accesso", type="default", key="password_input")
-        
-        if st.button("Accedi", use_container_width=True):
-            usati = leggi_codici_usati()
-            
-            if codice_inserito in usati:
-                st.error("❌ Questo codice è già stato utilizzato.")
-            elif codice_inserito in CODICI_VALIDI:
-                salva_codice_usato(codice_inserito)
-                st.session_state.password_correct = True
-                st.success("✅ Codice valido! Accesso in corso...")
-                st.rerun()
+    # Interfaccia di Login
+    st.markdown("## 🔐 Accesso Professionale")
+    codice_inserito = st.text_input("Inserisci il tuo codice univoco", key="password_input")
+    
+    if st.button("Verifica ed Entra"):
+        # 1. Controlla se il codice è tra quelli validi
+        if codice_inserito not in CODICI_VALIDI:
+            st.error("❌ Codice non valido.")
+        else:
+            # 2. Controlla nel DB se è già stato usato
+            if verifica_codice_nel_db(codice_inserito):
+                st.error("❌ Questo codice è già stato riscattato in precedenza.")
             else:
-                st.error("❌ Codice non valido. Riprova.")
-        
-        st.caption("© Easywork - Servizio Generazione DVR")
+                # 3. Lo bruciamo nel DB e facciamo entrare l'utente
+                registra_codice_usato(codice_inserito)
+                st.session_state.password_correct = True
+                st.success("✅ Codice accettato!")
+                st.rerun()
     return False
 
 # === VERIFICA ACCESSO ===
@@ -559,6 +555,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
