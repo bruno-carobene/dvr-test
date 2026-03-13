@@ -77,14 +77,14 @@ def check_password():
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image("assets/logo-easywork.png", use_container_width=True)
+        st.image("assets/logo-easywork.png", use_column_width=True)
         st.markdown("## 🔐 DVR Generator: accesso con password")
         st.markdown("##### Un progetto Easywork Italia Srl.")
         st.divider() 
         
         codice_inserito = st.text_input("Inserisci il tuo codice univoco", key="password_input")
    
-        if st.button("Verifica ed Entra", use_container_width=True):
+        if st.button("Verifica ed Entra", use_column_width=True):
             if codice_inserito not in CODICI_VALIDI:
                 st.error("❌ Codice non valido.")
             else:
@@ -339,6 +339,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
                 doc_buffer = genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, "templates", logo_file=logo_caricato, foto_ambienti=foto_ambienti)
                 filename = f"DVR_{nome.replace(' ', '_')}_{datetime.now().strftime('%d-%m-%Y')}.docx"
                 st.success("✅ Generato!")
-                st.download_button("📥 Scarica DVR", data=doc_buffer, file_name=filename, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
+                st.download_button("📥 Scarica DVR", data=doc_buffer, file_name=filename, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_column_width=True)
             except Exception as e:
                 st.error(f"❌ Errore: {e}")
+
