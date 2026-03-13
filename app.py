@@ -4,23 +4,16 @@ from supabase import create_client, Client
 from datetime import datetime
 import os
 
-# Sostituisci queste righe:
-# URL_SUPABASE = st.secrets["SUPABASE_URL"]
-# KEY_SUPABASE = st.secrets["SUPABASE_KEY"]
-
-# Con queste:
+# === CONFIGURAZIONE SUPABASE ===
 URL_SUPABASE = os.getenv("SUPABASE_URL")
 KEY_SUPABASE = os.getenv("SUPABASE_KEY")
 
-# Aggiungi questo piccolo controllo per sicurezza
 if not URL_SUPABASE or not KEY_SUPABASE:
-    st.error("Errore: Variabili d'ambiente non trovate su Render!")
+    st.error("Errore: Variabili d'ambiente SUPABASE_URL o SUPABASE_KEY non trovate su Render!")
 else:
-    # QUESTA È LA RIGA MANCANTE:
     supabase: Client = create_client(URL_SUPABASE, KEY_SUPABASE)
-    
-# Incolla qui i tuoi 100 codici. Se il codice è in questa lista, può entrare.
-# === CONFIGURAZIONE CODICI MONOUSO ===
+
+# === LISTA 100 CODICI MONOUSO ===
 CODICI_VALIDI = [
     "EW-72A1-9XB", "EW-15K2-4ML", "EW-88P3-7RT", "EW-24V4-1NQ", "EW-63S5-8DP",
     "EW-41G6-2WY", "EW-90J7-5KH", "EW-37B8-9CV", "EW-52M9-1XZ", "EW-19R0-4BF",
@@ -44,18 +37,15 @@ CODICI_VALIDI = [
     "EW-31T6-2KG", "EW-64B7-5PH", "EW-42H8-8WL", "EW-91G9-1VX", "EW-35K0-4NM"
 ]
 
-
+# === FUNZIONI DATABASE ===
 def verifica_codice_nel_db(codice):
-    # Controlla se il codice è già presente nella tabella
     risposta = supabase.table("codici_usati").select("codice").eq("codice", codice).execute()
     return len(risposta.data) > 0
 
 def registra_codice_usato(codice):
-    # Inserisce il codice per "bruciarlo"
     supabase.table("codici_usati").insert({"codice": codice}).execute()
-    
+
 def log_dati_generazione(codice, azienda_data, ambienti, attrezzature, mansioni, chimici):
-    """Salva i dettagli della generazione nel database Supabase"""
     try:
         data_to_save = {
             "codice_usato": codice,
@@ -64,25 +54,20 @@ def log_dati_generazione(codice, azienda_data, ambienti, attrezzature, mansioni,
             "codice_ateco": azienda_data.get("ateco"),
             "tipologia_azienda": azienda_data.get("tipologia"),
             "datore_lavoro": azienda_data.get("Datore_di_lavoro"),
-            
-            # Mappatura basata sulle chiavi esatte del tuo codice
             "via_sede_legale": azienda_data.get("indirizzo_legale"),      
             "comune_sede_legale": azienda_data.get("citta_legale"),      
             "provincia_sede_legale": azienda_data.get("provincia_legale"), 
-            
             "ambienti_selezionati": ", ".join(ambienti),
             "attrezzature_selezionate": ", ".join(attrezzature),
             "mansioni_selezionate": ", ".join(mansioni),
             "agenti_chimici_selezionati": ", ".join(chimici),
             "tutti_i_dati_json": azienda_data 
         }
-        # Inserimento nella tabella log_generazioni
         supabase.table("log_generazioni").insert(data_to_save).execute()
     except Exception as e:
         st.error(f"Errore tecnico durante il salvataggio dei log: {e}")
-        
 
-# CONTROLLO PASSWORD
+# === FUNZIONE CONTROLLO ACCESSO ===
 def check_password():
     if "password_correct" not in st.session_state:
         st.session_state.password_correct = False
@@ -90,125 +75,69 @@ def check_password():
     if st.session_state.password_correct:
         return True
     
-    # Interfaccia di Login
     col1, col2, col3 = st.columns([1, 2, 1])
-
     with col2:
-        # 1. Visualizzazione del Logo
         st.image("assets/logo-easywork.png", use_container_width=True)
-    
-        # 2. Testo su due righe
         st.markdown("## 🔐 DVR Generator: accesso con password")
         st.markdown("##### Un progetto Easywork Italia Srl.")
         st.divider() 
-    
-        # 3. Campo di input
+        
         codice_inserito = st.text_input("Inserisci il tuo codice univoco", key="password_input")
    
-        if st.button("Verifica ed Entra"):
-            # 1. Controlla se il codice è tra quelli validi
+        if st.button("Verifica ed Entra", use_container_width=True):
             if codice_inserito not in CODICI_VALIDI:
                 st.error("❌ Codice non valido.")
             else:
-                # 2. Controlla nel DB se è già stato usato
                 if verifica_codice_nel_db(codice_inserito):
                     st.error("❌ Questo codice è già stato riscattato in precedenza.")
                 else:
-                    # 3. LOGICA CORRETTA (Indentata di 4 spazi rispetto all'else precedente)
                     registra_codice_usato(codice_inserito)
                     st.session_state.password_correct = True
                     st.success("✅ Codice accettato!")
                     st.rerun()
     return False
 
-# === VERIFICA ACCESSO ===
+# Blocca l'app se non autenticato
 if not check_password():
-    st.stop()  # Blocca esecuzione se non loggato
+    st.stop()
 
-# === INIZIO APP (dopo login) ===
-st.set_page_config(
-    page_title="Generatore DVR",
-    page_icon="📋",
-    layout="wide"
-)
+# === CONFIGURAZIONE PAGINA ===
+st.set_page_config(page_title="Generatore DVR", page_icon="📋", layout="wide")
 
-# Logo in header (più piccolo)
+# Header
 col1, col2, col3 = st.columns([1, 4, 1])
 with col2:
-    st.image("https://raw.githubusercontent.com/bruno-carobene/dvr-generator/main/assets/logo-easywork.png", 
-             width=400)
+    st.image("assets/logo-easywork.png", width=400)
 
-# Titolo centrato
-st.markdown("""
-    <h1 style='text-align: center;'>
-        Generatore Documento di Valutazione Rischi (DVR)<br>
-        Un progetto Easywork Italia S.r.l.
-    </h1>
-""", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Generatore Documento di Valutazione Rischi (DVR)<br>Un progetto Easywork Italia S.r.l.</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Compila il modulo per generare il documento di valutazione rischi personalizzato.</p>", unsafe_allow_html=True)
 
-st.markdown("""
-    <p style='text-align: center;'>
-        Compila il modulo per generare il documento di valutazione rischi personalizzato.
-    </p>
-""", unsafe_allow_html=True)
-
-# Pulsante logout (opzionale, in sidebar)
+# Sidebar Logout
 with st.sidebar:
-    # RESTRINGI sidebar al minimo
-    st.markdown("""
-        <style>
-        /* Sidebar chiusa (mobile) */
-        [data-testid="stSidebar"][aria-expanded="false"] {
-            width: 0 !important;
-            min-width: 0 !important;
-        }
-        
-        /* Sidebar aperta (desktop) - REGOLA QUESTO VALORE */
-        [data-testid="stSidebar"][aria-expanded="true"] {
-            width: 150px !important;
-            min-width: 150px !important;
-            max-width: 150px !important;
-        }
-        
-        /* Contenuto interno sidebar */
-        [data-testid="stSidebar"][aria-expanded="true"] > div {
-            width: 150px !important;
-        }
-        
-        /* Rimuovi padding eccessivo */
-        .css-1d391kg, .css-1lcbmhc {
-            padding: 0.5rem !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
+    st.markdown("""<style>[data-testid="stSidebar"][aria-expanded="true"] {width: 150px !important; min-width: 150px !important;}</style>""", unsafe_allow_html=True)
     if st.button("🚪 Logout", use_container_width=True):
         st.session_state.password_correct = False
         st.rerun()
     st.markdown("---")
 
-# Inizializza session state per i dati
+# Inizializzazione dati
 if 'azienda_data' not in st.session_state:
     st.session_state.azienda_data = {}
 
-# === SEZIONE 1: ANAGRAFICA AZIENDA ===
+# === SEZIONE 1: ANAGRAFICA ===
 st.header("🏢 Anagrafica Aziendale")
-
-# Caricamento Logo
 st.subheader("🖼️ Logo Aziendale")
-logo_caricato = st.file_uploader("Se lo desideri, carica il logo della tua azienda", type=["png", "jpg", "jpeg"])
+logo_caricato = st.file_uploader("Carica il logo della tua azienda", type=["png", "jpg", "jpeg"])
 
-col1, col2 = st.columns(2)
-
-with col1:
+col_a, col_b = st.columns(2)
+with col_a:
     nome = st.text_input("Nome dell'azienda *", key="nome")
     tipologia = st.text_input("Tipologia di azienda", key="tipologia")
     ateco = st.text_input("Codice ATECO", key="ateco")
     datore = st.text_input("Datore di lavoro *", key="datore")
     rspp = st.text_input("RSPP", key="rspp")
     rls = st.text_input("RLS", key="rls")
-    
-with col2:
+with col_b:
     piva = st.text_input("Partita IVA", key="piva")
     cf = st.text_input("Codice Fiscale", key="cf")
     medico = st.text_input("Medico competente", key="medico")
@@ -216,417 +145,200 @@ with col2:
     primo_soccorso = st.text_input("Incaricato primo soccorso", key="primo_soccorso")
     orario = st.text_input("Orario di lavoro", key="orario")
 
-# Indirizzi
 st.subheader("📍 Sedi")
-col3, col4 = st.columns(2)
-with col3:
+c1, c2 = st.columns(2)
+with c1:
     st.markdown("**Sede Legale**")
     ind_legale = st.text_input("Via e numero civico", key="ind_legale")
     citta_legale = st.text_input("Comune", key="citta_legale")
     prov_legale = st.text_input("Provincia", key="prov_legale")
-
-with col4:
+with c2:
     st.markdown("**Sede Operativa**")
     ind_op = st.text_input("Via e numero civico ", key="ind_op")
     citta_op = st.text_input("Comune ", key="citta_op")
     prov_op = st.text_input("Provincia ", key="prov_op")
 
-# Descrizione attività
-st.subheader("📝 Descrizione Attività")
-attivita_desc = st.text_area("Descrivi brevemente il settore di attività della tua azienda", key="attivita")
+attivita_desc = st.text_area("Descrizione attività", key="attivita")
 locali = st.text_area("Struttura dei locali", key="locali")
-terzi = st.text_input("Specifica se vi sono attività affidate a terzi", key="terzi")
-terzi_svolte = st.text_input("Specifica se vi sono attività svolte presso terzi", key="terzi_svolte")
+terzi = st.text_input("Attività affidate a terzi", key="terzi")
+terzi_svolte = st.text_input("Attività svolte presso terzi", key="terzi_svolte")
 
 # === SEZIONE 2: AMBIENTI ===
 st.header("🏭 Ambienti Aziendali")
-
-st.markdown("Seleziona gli ambienti utilizzati per la tua attività:")
-
-col_amb1, col_amb2, col_amb3 = st.columns(3)
-
-with col_amb1:
+ca1, ca2, ca3 = st.columns(3)
+with ca1:
     ufficio = st.checkbox("Ufficio")
     magazzino = st.checkbox("Magazzino")
     palestre = st.checkbox("Palestre e locali annessi")
     sala_attivita = st.checkbox("Sala attività associazione")
-
-with col_amb2:
+with ca2:
     dehors = st.checkbox("Dehors esterno - tensostruttura")
     area_bar = st.checkbox("Area bar e ristoro")
     locale_quadri = st.checkbox("Locale quadri elettrici")
     locali_spogliatoio = st.checkbox("Locali spogliatoio")
-
-with col_amb3:
+with ca3:
     tribuna = st.checkbox("Tribuna")
     locali_caldaia = st.checkbox("Locali caldaia")
     altro_amb = st.text_input("Altro (specificare)")
 
-# === AGGIUNTA DOPO LA SEZIONE 2: AMBIENTI (app.py) ===
-st.header("📸 Foto Ambienti di Lavoro (Opzionale)")
-st.info("Puoi caricare file esistenti, o scattare foto se sei su mobile, per mostrare gli ambienti di lavoro della tua azienda.")
-
+st.header("📸 Foto Ambienti (Opzionale)")
 foto_ambienti = []
-file_caricati = st.file_uploader("Carica o scatta foto degli ambienti", 
-                                  type=["png", "jpg", "jpeg"], 
-                                  accept_multiple_files=True)
-
+file_caricati = st.file_uploader("Carica foto", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
 if file_caricati:
     for i, file in enumerate(file_caricati):
         col_img, col_txt = st.columns([1, 2])
-        with col_img:
-            st.image(file, width=150)
+        with col_img: st.image(file, width=150)
         with col_txt:
-            didascalia = st.text_input(f"Didascalia per la foto {i+1}", 
-                                       placeholder="Es: Uffici Amministrativi", 
-                                       key=f"cap_{i}")
+            didascalia = st.text_input(f"Didascalia foto {i+1}", key=f"cap_{i}")
             foto_ambienti.append({"file": file, "caption": didascalia})
 
 # === SEZIONE 3: ATTREZZATURE ===
 st.header("🔧 Attrezzature Impiegate")
-
+# (Cucina)
 st.markdown("**Cucina e Ristorazione**")
-col_att1, col_att2, col_att3 = st.columns(3)
-with col_att1:
+ct1, ct2, ct3 = st.columns(3)
+with ct1:
     att_cucina = st.checkbox("Attrezzature cucina")
     att_cucina_man = st.checkbox("Attrezzi manuali cucina")
     forno_micro = st.checkbox("Forno microonde")
-with col_att2:
+with ct2:
     forno_elettr = st.checkbox("Forno elettrico")
     frigorifero = st.checkbox("Frigorifero")
     macchina_caffe = st.checkbox("Macchina caffè bar")
-with col_att3:
+with ct3:
     macchina_ghiaccio = st.checkbox("Macchina ghiaccio")
     piastra_toast = st.checkbox("Piastra toast/panini")
 
+# (Ufficio)
 st.markdown("**Ufficio e Tecnologia**")
-col_att4, col_att5, col_att6 = st.columns(3)
-with col_att4:
+ct4, ct5, ct6 = st.columns(3)
+with ct4:
     registratore = st.checkbox("Registratore cassa")
     videoterm = st.checkbox("Videoterminali")
     att_ufficio = st.checkbox("Attrezzi manuali ufficio")
-with col_att5:
+with ct5:
     stampante_laser = st.checkbox("Stampante laser")
     stampante_ink = st.checkbox("Stampante getto inchiostro")
     telefono = st.checkbox("Telefono/Cellulare")
-with col_att6:
+with ct6:
     pc = st.checkbox("PC fisso/portatile")
     tablet = st.checkbox("Tablet")
 
+# (Logistica/Sport)
 st.markdown("**Logistica, Sport e Pulizia**")
-col_att7, col_att8 = st.columns(2)
-with col_att7:
+ct7, ct8 = st.columns(2)
+with ct7:
     scaffali = st.checkbox("Scaffali metallici")
     att_sport = st.checkbox("Attrezzi sportivi")
     att_pulizia = st.checkbox("Attrezzi pulizia")
-with col_att8:
+with ct8:
     autoveicoli = st.checkbox("Autoveicoli")
     motoveicoli = st.checkbox("Motoveicoli")
     scala = st.checkbox("Scala portatile doppia")
-
-altro_att = st.text_input("Altre attrezzature (specificare)")
+altro_att = st.text_input("Altre attrezzature")
 
 # === SEZIONE 4: MANSIONI ===
 st.header("👷 Mansioni Presenti")
-
-st.markdown("**Ristorazione e Accoglienza**")
-col_man1, col_man2 = st.columns(2)
-with col_man1:
+cm1, cm2 = st.columns(2)
+with cm1:
     addetto_bar = st.checkbox("Addetto bar")
     aiuto_cuoco = st.checkbox("Addetto cucina/aiutocuoco")
     resp_sala = st.checkbox("Responsabile sala")
-with col_man2:
     reception = st.checkbox("Addetto reception")
     customer = st.checkbox("Addetto customer service")
-
-st.markdown("**Amministrazione e Dirigenza**")
-col_man3, col_man4 = st.columns(2)
-with col_man3:
+with cm2:
     dirigente = st.checkbox("Dirigente")
     imp_admin = st.checkbox("Impiegato amministrativo")
-with col_man4:
     impiegato = st.checkbox("Impiegato")
     segretario = st.checkbox("Segretario/a")
 
-st.markdown("**Sport e Benessere**")
-col_man5, col_man6 = st.columns(2)
-with col_man5:
-    istruttore = st.checkbox("Istruttore/allenatore/preparatore")
+cm3, cm4 = st.columns(2)
+with cm3:
+    istruttore = st.checkbox("Istruttore/allenatore")
     bagnino = st.checkbox("Bagnino")
-with col_man6:
     estetista = st.checkbox("Estetista")
     parrucchiere = st.checkbox("Parrucchiere")
-
-st.markdown("**Servizi e Manutenzione**")
-col_man7, col_man8 = st.columns(2)
-with col_man7:
+with cm4:
     add_servizi = st.checkbox("Addetto ai servizi")
     add_pulizia = st.checkbox("Addetto pulizia base")
     minuta_man = st.checkbox("Addetto minuta manutenzione")
-with col_man8:
-    manutenzione = st.checkbox("Addetto manutenzione/tuttofare")
-    magazzino = st.checkbox("Addetto magazzino")
+    manutenzione = st.checkbox("Addetto manutenzione tuttofare")
+    magazzino_man = st.checkbox("Addetto magazzino")
     operaio = st.checkbox("Operaio generico")
-
-altra_mansione = st.text_input("Altra mansione (specificare)")
+altra_mansione = st.text_input("Altra mansione")
 
 # === SEZIONE 5: AGENTI CHIMICI ===
 st.header("🧪 Agenti Chimici")
-
-st.markdown("**Pulizia, Igiene e Ristorazione**")
-col_ch1, col_ch2, col_ch3 = st.columns(3)
-with col_ch1:
-    acidi = st.checkbox("Acidi per laboratori didattici")
-    alcool = st.checkbox("Alcool etilico")
+cc1, cc2, cc3 = st.columns(3)
+with cc1:
+    acidi = st.checkbox("Acidi")
+    alcool = st.checkbox("Alcool")
     ammoniaca = st.checkbox("Ammoniaca")
-with col_ch2:
     candeggina = st.checkbox("Candeggina")
-    det_forni = st.checkbox("Detergente disincrostante forni")
+with cc2:
+    det_forni = st.checkbox("Detergente forni")
     det_stov = st.checkbox("Detergente stoviglie")
-with col_ch3:
     det_lavast = st.checkbox("Detergente lavastoviglie")
     det_pav = st.checkbox("Detergente pavimenti")
+with cc3:
     det_wc = st.checkbox("Detergente WC")
-
-st.markdown("**Officina, Manutenzione e Gas**")
-col_ch4, col_ch5 = st.columns(2)
-with col_ch4:
-    anticorrosivo = st.checkbox("Anticorrosivo")
-    antiruggine = st.checkbox("Antiruggine")
-    argon = st.checkbox("Argon")
-    azoto = st.checkbox("Azoto")
-with col_ch5:
-    fumi_sald = st.checkbox("Fumi di saldatura")
     grasso_lub = st.checkbox("Grasso lubrificante")
-    lubr_spray = st.checkbox("Lubrificanti spray")
-    polveri = st.checkbox("Polveri da molatura")
-
-st.markdown("**Verniciatura e Carrozzeria**")
-col_ch6, col_ch7 = st.columns(2)
-with col_ch6:
-    acquaragia = st.checkbox("Acquaragia")
-    catalizzatore = st.checkbox("Catalizzatore vernici")
-    det_carrozz = st.checkbox("Detergente carrozzerie")
-with col_ch7:
-    fondo_vern = st.checkbox("Fondo verniciatura")
-    primer = st.checkbox("Primer verniciatura")
-    vernice_spray = st.checkbox("Vernice spray")
-
-st.markdown("**Carburanti e Altro**")
-col_ch8, col_ch9 = st.columns(2)
-with col_ch8:
-    benzina = st.checkbox("Benzina")
-    gasolio = st.checkbox("Gasolio")
-with col_ch9:
     toner = st.checkbox("Toner")
-    tinta = st.checkbox("Tinta per capelli")
+    tinta = st.checkbox("Tinta capelli")
 
-# === PULSANTE GENERAZIONE ===
+# Altri chimici mappatura rapida
+anticorrosivo = st.checkbox("Anticorrosivo")
+antiruggine = st.checkbox("Antiruggine")
+argon = st.checkbox("Argon")
+azoto = st.checkbox("Azoto")
+fumi_sald = st.checkbox("Fumi saldatura")
+lubr_spray = st.checkbox("Lubrificanti spray")
+polveri = st.checkbox("Polveri molatura")
+acquaragia = st.checkbox("Acquaragia")
+catalizzatore = st.checkbox("Catalizzatore")
+det_carrozz = st.checkbox("Detergente carrozzeria")
+fondo_vern = st.checkbox("Fondo vernice")
+primer = st.checkbox("Primer")
+vernice_spray = st.checkbox("Vernice spray")
+benzina = st.checkbox("Benzina")
+gasolio = st.checkbox("Gasolio")
+
+# === GENERAZIONE ===
 st.divider()
-st.header("🚀 Generazione Documento")
-
 if st.button("Genera DVR", type="primary", use_container_width=True):
-    
-    # Verifica campi obbligatori
     if not nome or not datore:
-        st.error("❌ Compila i campi obbligatori (Nome azienda e Datore di lavoro)")
+        st.error("❌ Nome azienda e Datore di lavoro obbligatori!")
     else:
-        with st.spinner("Generazione documento in corso..."):
-            
-            # Prepara dizionario azienda
+        with st.spinner("Generazione in corso..."):
             azienda_data = {
-                "nome": nome,
-                "tipologia": tipologia,
-                "ateco": ateco,
-                "Datore_di_lavoro": datore,
-                "RSPP": rspp,
-                "RLS": rls,
-                "indirizzo_legale": ind_legale,
-                "citta_legale": citta_legale,
-                "provincia_legale": prov_legale,
-                "indirizzo_operativo": ind_op,
-                "citta_operativa": citta_op,
-                "provincia_operativa": prov_op,
-                "Incaricato_antincendio": antincendio,
-                "Indirizzo_sede": ind_op or ind_legale,
-                "Attivita": attivita_desc,
-                "Partita_Iva": piva,
-                "Codice_fiscale": cf,
-                "Orario": orario,
-                "Medico": medico,
-                "Incaricato_primo_soccorso": primo_soccorso,
-                "locali": locali,
-                "terzi": terzi,
-                "terzi_svolte": terzi_svolte
+                "nome": nome, "tipologia": tipologia, "ateco": ateco,
+                "Datore_di_lavoro": datore, "RSPP": rspp, "RLS": rls,
+                "Partita_Iva": piva, "Codice_fiscale": cf, "Medico": medico,
+                "Incaricato_antincendio": antincendio, "Incaricato_primo_soccorso": primo_soccorso,
+                "Orario": orario, "indirizzo_legale": ind_legale, "citta_legale": citta_legale,
+                "provincia_legale": prov_legale, "indirizzo_operativo": ind_op,
+                "citta_operativa": citta_op, "provincia_operativa": prov_op,
+                "Attivita": attivita_desc, "locali": locali, "terzi": terzi, "terzi_svolte": terzi_svolte
             }
             
-            # Prepara liste
-            ambienti = []
-            if ufficio: ambienti.append("ufficio")
-            if magazzino: ambienti.append("magazzino")
-            if palestre: ambienti.append("palestre_locali_annessi")
-            if sala_attivita: ambienti.append("sala_attivita_associazione")
-            if dehors: ambienti.append("dehors_esterno")
-            if area_bar: ambienti.append("area_bar_ristoro")
-            if locale_quadri: ambienti.append("locale_quadri_elettrici")
-            if locali_spogliatoio: ambienti.append("locali_spogliatoio")
-            if tribuna: ambienti.append("tribuna")
-            if locali_caldaia: ambienti.append("locali_caldaia")
-            if altro_amb: ambienti.append(altro_amb.lower().replace(" ", "_"))
+            ambienti = [k for k,v in {"ufficio":ufficio, "magazzino":magazzino, "palestre":palestre, "sala_attivita":sala_attivita, "dehors":dehors, "area_bar":area_bar, "locale_quadri":locale_quadri, "spogliatoi":locali_spogliatoio, "tribuna":tribuna, "caldaia":locali_caldaia}.items() if v]
+            if altro_amb: ambienti.append(altro_amb)
             
-            attrezzature = []
-            if att_cucina: attrezzature.append("attrezzature_cucina")
-            if att_cucina_man: attrezzature.append("attrezzi_manuali_cucina")
-            if forno_micro: attrezzature.append("forno_microonde")
-            if forno_elettr: attrezzature.append("forno_elettrico")
-            if frigorifero: attrezzature.append("frigorifero")
-            if macchina_caffe: attrezzature.append("macchina_caffe_bar")
-            if macchina_ghiaccio: attrezzature.append("macchina_ghiaccio")
-            if piastra_toast: attrezzature.append("piastra_toast_panini")
-            if registratore: attrezzature.append("registratore_cassa")
-            if videoterm: attrezzature.append("videoterminali")
-            if att_ufficio: attrezzature.append("attrezzi_manuali_ufficio")
-            if stampante_laser: attrezzature.append("stampante_laser")
-            if stampante_ink: attrezzature.append("stampante_getto_inchiostro")
-            if telefono: attrezzature.append("telefono_cellulare")
-            if pc: attrezzature.append("pc_fisso_portatile")
-            if tablet: attrezzature.append("tablet")
-            if scaffali: attrezzature.append("scaffali_metallici")
-            if att_sport: attrezzature.append("attrezzi_sportivi")
-            if att_pulizia: attrezzature.append("attrezzi_pulizia")
-            if autoveicoli: attrezzature.append("autoveicoli")
-            if motoveicoli: attrezzature.append("motoveicoli")
-            if scala: attrezzature.append("scala_portatile_doppia")
-            if altro_att: attrezzature.append(altro_att.upper())
+            attrezzature = [k for k,v in {"cucina":att_cucina, "cucina_man":att_cucina_man, "microonde":forno_micro, "forno_el":forno_elettr, "frigo":frigorifero, "caffe":macchina_caffe, "ghiaccio":macchina_ghiaccio, "piastra":piastra_toast, "cassa":registratore, "vdt":videoterm, "ufficio_man":att_ufficio, "laser":stampante_laser, "inkjet":stampante_ink, "tel":telefono, "pc":pc, "tablet":tablet, "scaffali":scaffali, "sport":att_sport, "pulizia":att_pulizia, "auto":autoveicoli, "moto":motoveicoli, "scala":scala}.items() if v]
+            if altro_att: attrezzature.append(altro_att)
             
-            mansioni = []
-            if addetto_bar: mansioni.append("addetto_bar")
-            if aiuto_cuoco: mansioni.append("addetto_cucina_aiutocuoco")
-            if resp_sala: mansioni.append("responsabile_sala")
-            if reception: mansioni.append("addetto_reception")
-            if customer: mansioni.append("addetto_customer_service")
-            if dirigente: mansioni.append("dirigente")
-            if imp_admin: mansioni.append("impiegato_amministrativo")
-            if impiegato: mansioni.append("impiegato")
-            if segretario: mansioni.append("segretario_a")
-            if istruttore: mansioni.append("istruttore_allenatore_preparatore")
-            if bagnino: mansioni.append("bagnino")
-            if estetista: mansioni.append("estetista")
-            if parrucchiere: mansioni.append("parrucchiere")
-            if add_servizi: mansioni.append("addetto_ai_servizi")
-            if add_pulizia: mansioni.append("addetto_pulizia_base")
-            if minuta_man: mansioni.append("addetto_minuta_manutenzione")
-            if manutenzione: mansioni.append("addetto_manutenzione_tuttofare_officina")
-            if magazzino: mansioni.append("addetto_magazzino")
-            if operaio: mansioni.append("operaio_generico")
-            if altra_mansione: mansioni.append(altra_mansione.upper())
-            
-            # Mappatura agenti chimici
-            m_chem = {
-                "acidi": "Acidi per laboratori didattici",
-                "alcool": "Alcool etilico",
-                "ammoniaca": "Ammoniaca",
-                "candeggina": "Candeggina",
-                "det_forni": "Detergente disincrostante forni",
-                "det_stov": "Detergente stoviglie a mano",
-                "det_lavast": "Detergente lavastoviglie",
-                "det_pav": "Detergente per pavimenti",
-                "det_wc": "Detergente per WC",
-                "anticorrosivo": "Anticorrosivo",
-                "antiruggine": "Antiruggine",
-                "argon": "Argon",
-                "azoto": "Azoto",
-                "fumi_sald": "Fumi di saldatura",
-                "grasso_lub": "Grasso lubrificante",
-                "lubr_spray": "Lubrificanti spray (Svitol/Grasso)",
-                "polveri": "Polveri da molatura",
-                "acquaragia": "Acquaragia",
-                "catalizzatore": "Catalizzatore vernici veicoli",
-                "det_carrozz": "Detergente lucidatura carrozzerie",
-                "fondo_vern": "Fondo verniciatura veicoli",
-                "primer": "Primer verniciatura veicoli",
-                "vernice_spray": "Vernice spray",
-                "benzina": "Benzina",
-                "gasolio": "Gasolio",
-                "toner": "Toner",
-                "tinta": "Tinta per capelli"
-            }
-            
-            agenti_chimici = []
-            for var, name in m_chem.items():
-                if locals().get(var):
-                    agenti_chimici.append(name)
-            # AGGIUNGI QUESTA RIGA QUI:
+            mansioni = [k for k,v in {"bar":addetto_bar, "cucina":aiuto_cuoco, "sala":resp_sala, "reception":reception, "customer":customer, "dirigente":dirigente, "admin":imp_admin, "impiegato":impiegato, "segretario":segretario, "istruttore":istruttore, "bagnino":bagnino, "estetista":estetista, "parrucchiere":parrucchiere, "servizi":add_servizi, "pulizia":add_pulizia, "minuta_man":minuta_man, "manutenzione":manutenzione, "magazzino":magazzino_man, "operaio":operaio}.items() if v]
+            if altra_mansione: mansioni.append(altra_mansione)
+
+            agenti_chimici = [v for k,v in {"acidi":"Acidi","alcool":"Alcool","ammoniaca":"Ammoniaca","candeggina":"Candeggina","det_forni":"Detergente forni","det_stov":"Detergente stoviglie","det_lavast":"Detergente lavastoviglie","det_pav":"Detergente pavimenti","det_wc":"Detergente WC","anticorrosivo":"Anticorrosivo","antiruggine":"Antiruggine","argon":"Argon","azoto":"Azoto","fumi_sald":"Fumi saldatura","grasso_lub":"Grasso lubrificante","lubr_spray":"Lubrificanti spray","polveri":"Polveri molatura","acquaragia":"Acquaragia","catalizzatore":"Catalizzatore","det_carrozz":"Detergente carrozzeria","fondo_vern":"Fondo vernice","primer":"Primer","vernice_spray":"Vernice spray","benzina":"Benzina","gasolio":"Gasolio","toner":"Toner","tinta":"Tinta capelli"}.items() if locals().get(k)]
+
+            # SALVATAGGIO LOG SU SUPABASE
             log_dati_generazione(st.session_state.password_input, azienda_data, ambienti, attrezzature, mansioni, agenti_chimici)
+            
             try:
-                # Genera documento
-                templates_dir = "templates"
-                doc_buffer = genera_dvr(
-                    azienda_data, 
-                    ambienti, 
-                    attrezzature, 
-                    mansioni, 
-                    agenti_chimici,
-                    templates_dir,
-                    logo_file=logo_caricato,       # Nuovo
-                    foto_ambienti=foto_ambienti    # Nuovo
-                )
-                
-                # Nome file
+                doc_buffer = genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, "templates", logo_file=logo_caricato, foto_ambienti=foto_ambienti)
                 filename = f"DVR_{nome.replace(' ', '_')}_{datetime.now().strftime('%d-%m-%Y')}.docx"
-                
-                st.success("✅ Documento generato con successo!")
-                
-                # Download button
-                st.download_button(
-                    label="📥 Scarica Documento DVR",
-                    data=doc_buffer,
-                    file_name=filename,
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
-                
-                # Istruzioni sommario
-                st.info("""
-                📋 **Il vostro documento:**  
-                Puoi ora scaricare il file docx che è stato generato.
-                1. Leggilo con attenzione
-                2. E' un file editabile e può essere corretto in ogni sua parte
-                3. Il documento deve essere stampato e firmato dai referenti.
-                """)
-                
-                # Riepilogo
-                with st.expander("📋 Riepilogo selezioni"):
-                    st.write(f"**Ambienti:** {len(ambienti)} selezionati")
-                    st.write(f"**Attrezzature:** {len(attrezzature)} selezionate")  
-                    st.write(f"**Mansioni:** {len(mansioni)} selezionate")
-                    st.write(f"**Agenti chimici:** {len(agenti_chimici)} selezionati")
-                    
+                st.success("✅ Generato!")
+                st.download_button("📥 Scarica DVR", data=doc_buffer, file_name=filename, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
             except Exception as e:
-                st.error(f"❌ Errore durante la generazione: {str(e)}")
-                st.exception(e)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                st.error(f"❌ Errore: {e}")
