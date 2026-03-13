@@ -93,6 +93,7 @@ def check_password():
                 else:
                     registra_codice_usato(codice_inserito)
                     st.session_state.password_correct = True
+                    st.session_state.codice_usato = codice_inserito
                     st.success("✅ Codice accettato!")
                     st.rerun()
     return False
@@ -333,7 +334,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             agenti_chimici = [v for k,v in {"acidi":"Acidi","alcool":"Alcool","ammoniaca":"Ammoniaca","candeggina":"Candeggina","det_forni":"Detergente forni","det_stov":"Detergente stoviglie","det_lavast":"Detergente lavastoviglie","det_pav":"Detergente pavimenti","det_wc":"Detergente WC","anticorrosivo":"Anticorrosivo","antiruggine":"Antiruggine","argon":"Argon","azoto":"Azoto","fumi_sald":"Fumi saldatura","grasso_lub":"Grasso lubrificante","lubr_spray":"Lubrificanti spray","polveri":"Polveri molatura","acquaragia":"Acquaragia","catalizzatore":"Catalizzatore","det_carrozz":"Detergente carrozzeria","fondo_vern":"Fondo vernice","primer":"Primer","vernice_spray":"Vernice spray","benzina":"Benzina","gasolio":"Gasolio","toner":"Toner","tinta":"Tinta capelli"}.items() if locals().get(k)]
 
             # SALVATAGGIO LOG SU SUPABASE
-            log_dati_generazione(st.session_state.password_input, azienda_data, ambienti, attrezzature, mansioni, agenti_chimici)
+            log_dati_generazione(st.session_state.codice_usato, azienda_data, ambienti, attrezzature, mansioni, agenti_chimici)
             
             try:
                 doc_buffer = genera_dvr(azienda_data, ambienti, attrezzature, mansioni, agenti_chimici, "templates", logo_file=logo_caricato, foto_ambienti=foto_ambienti)
@@ -342,5 +343,6 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
                 st.download_button("📥 Scarica DVR", data=doc_buffer, file_name=filename, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             except Exception as e:
                 st.error(f"❌ Errore: {e}")
+
 
 
