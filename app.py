@@ -63,7 +63,7 @@ def check_password():
         return True
     
     # Interfaccia di Login
-    st.markdown("## 🔐 Accesso Professionale")
+    st.markdown("## 🔐 DVR Generator: accesso con password")
     codice_inserito = st.text_input("Inserisci il tuo codice univoco", key="password_input")
     
     if st.button("Verifica ed Entra"):
@@ -565,6 +565,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
