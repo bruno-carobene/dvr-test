@@ -91,38 +91,34 @@ def check_password():
         return True
     
     # Interfaccia di Login
-    # === INTERFACCIA DI LOGIN ===
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
-    # 1. Visualizzazione del Logo
-    # Nota: assicurati che il percorso sia corretto rispetto a dove si trova app.py
+        # 1. Visualizzazione del Logo
         st.image("assets/logo-easywork.png", use_container_width=True)
     
-    # 2. Testo su due righe
+        # 2. Testo su due righe
         st.markdown("## 🔐 DVR Generator: accesso con password")
         st.markdown("##### Un progetto Easywork Italia Srl.")
+        st.divider() 
     
-        st.divider() # Aggiunge una linea sottile estetica
-    
-    # 3. Campo di input
+        # 3. Campo di input
         codice_inserito = st.text_input("Inserisci il tuo codice univoco", key="password_input")
    
-    
         if st.button("Verifica ed Entra"):
-        # 1. Controlla se il codice è tra quelli validi
+            # 1. Controlla se il codice è tra quelli validi
             if codice_inserito not in CODICI_VALIDI:
                 st.error("❌ Codice non valido.")
             else:
-            # 2. Controlla nel DB se è già stato usato
+                # 2. Controlla nel DB se è già stato usato
                 if verifica_codice_nel_db(codice_inserito):
                     st.error("❌ Questo codice è già stato riscattato in precedenza.")
                 else:
-                # 3. Lo bruciamo nel DB e facciamo entrare l'utente
-                registra_codice_usato(codice_inserito)
-                st.session_state.password_correct = True
-                st.success("✅ Codice accettato!")
-                st.rerun()
+                    # 3. LOGICA CORRETTA (Indentata di 4 spazi rispetto all'else precedente)
+                    registra_codice_usato(codice_inserito)
+                    st.session_state.password_correct = True
+                    st.success("✅ Codice accettato!")
+                    st.rerun()
     return False
 
 # === VERIFICA ACCESSO ===
@@ -609,6 +605,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
