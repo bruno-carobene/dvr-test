@@ -53,21 +53,23 @@ def verifica_codice_nel_db(codice):
 def registra_codice_usato(codice):
     # Inserisce il codice per "bruciarlo"
     supabase.table("codici_usati").insert({"codice": codice}).execute()
+    
 def log_dati_generazione(codice, azienda_data, ambienti, attrezzature, mansioni, chimici):
     """Salva i dettagli della generazione nel database Supabase"""
     try:
-        # Recuperiamo l'indirizzo (operativo o legale)
-        indirizzo = azienda_data.get("indirizzo_operativo") or azienda_data.get("indirizzo_legale")
-        comune = azienda_data.get("citta_operativa") or azienda_data.get("citta_legale")
-        indirizzo_completo = f"{indirizzo}, {comune}" if indirizzo else "Non specificato"
-
         data_to_save = {
             "codice_usato": codice,
             "nome_azienda": azienda_data.get("nome"),
             "partita_iva": azienda_data.get("Partita_Iva"),
-            "codice_ateco": azienda_data.get("ateco"),      # Nome colonna SQL
-            "indirizzo_azienda": indirizzo_completo,        # Nome colonna SQL
+            "codice_ateco": azienda_data.get("ateco"),
+            "tipologia_azienda": azienda_data.get("tipologia"),
             "datore_lavoro": azienda_data.get("Datore_di_lavoro"),
+            
+            # Mappatura basata sulle chiavi esatte del tuo codice
+            "via_sede_legale": azienda_data.get("indirizzo_legale"),      
+            "comune_sede_legale": azienda_data.get("citta_legale"),      
+            "provincia_sede_legale": azienda_data.get("provincia_legale"), 
+            
             "ambienti_selezionati": ", ".join(ambienti),
             "attrezzature_selezionate": ", ".join(attrezzature),
             "mansioni_selezionate": ", ".join(mansioni),
@@ -77,7 +79,7 @@ def log_dati_generazione(codice, azienda_data, ambienti, attrezzature, mansioni,
         # Inserimento nella tabella log_generazioni
         supabase.table("log_generazioni").insert(data_to_save).execute()
     except Exception as e:
-        print(f"Errore durante il salvataggio dei log: {e}")
+        st.error(f"Errore tecnico durante il salvataggio dei log: {e}")
         
 
 # CONTROLLO PASSWORD
@@ -592,6 +594,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"❌ Errore durante la generazione: {str(e)}")
                 st.exception(e)
+
 
 
 
