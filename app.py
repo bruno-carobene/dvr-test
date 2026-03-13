@@ -307,8 +307,19 @@ gasolio = st.checkbox("Gasolio")
 # === GENERAZIONE ===
 st.divider()
 if st.button("Genera DVR", type="primary", use_container_width=True):
-    if not nome or not datore:
-        st.error("❌ Nome azienda e Datore di lavoro obbligatori!")
+    campi_mancanti = []
+    if not nome: campi_mancanti.append("Nome azienda")
+    if not tipologia: campi_mancanti.append("Tipologia azienda")
+    if not ateco: campi_mancanti.append("Codice ATECO")
+    if not datore: campi_mancanti.append("Datore di lavoro")
+    if not rspp: campi_mancanti.append("RSPP")
+    if not piva: campi_mancanti.append("Partita IVA")
+    if not ind_legale: campi_mancanti.append("Via e numero civico (Sede Legale)")
+    if not citta_legale: campi_mancanti.append("Comune (Sede Legale)")
+    if not prov_legale: campi_mancanti.append("Provincia (Sede Legale)")
+
+    if campi_mancanti:
+        st.error(f"❌ Campi obbligatori mancanti: {', '.join(campi_mancanti)}")
     else:
         with st.spinner("Generazione in corso..."):
             azienda_data = {
@@ -343,7 +354,6 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
                 st.download_button("📥 Scarica DVR", data=doc_buffer, file_name=filename, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             except Exception as e:
                 st.error(f"❌ Errore: {e}")
-
 
 
 
