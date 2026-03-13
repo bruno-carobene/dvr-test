@@ -77,7 +77,7 @@ def check_password():
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image("assets/logo-easywork.png", use_column_width=True)
+        st.image("assets/logo-easywork.png", use_container_width=True)
         st.markdown("## 🔐 DVR Generator: accesso con password")
         st.markdown("##### Un progetto Easywork Italia Srl.")
         st.divider() 
@@ -343,6 +343,7 @@ if st.button("Genera DVR", type="primary", use_container_width=True):
                 st.download_button("📥 Scarica DVR", data=doc_buffer, file_name=filename, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             except Exception as e:
                 st.error(f"❌ Errore: {e}")
+
 
 
 
